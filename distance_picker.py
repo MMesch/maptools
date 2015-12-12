@@ -11,12 +11,13 @@ import numpy as np
 
 #==== MAIN =====
 def main():
-    fig,ax = plt.subplots(1,1)
+    fig,ax = plt.subplots(1,1,figsize= (6,3))
 
     #---- basemap setup ----
     lon_0 = 0.
     bmap = Basemap(projection='robin',lon_0=lon_0)
-    bmap.fillcontinents()
+    bmap.drawmapboundary(fill_color='black')
+    bmap.fillcontinents(color='#0a460a',lake_color='black')
     bmap.drawcoastlines()
 
     #---- event handler class that draws lines around a points ----
@@ -32,6 +33,8 @@ class PickEvent(object):
         self.ax   = ax
         self.fig  = fig
         self.bmap = bmap
+        self.cmap = plt.get_cmap('rainbow_r')
+        self.norm = plt.Normalize(0.,np.pi)
 
     def __call__(self,event):
         if self.showlines:
@@ -59,7 +62,9 @@ class PickEvent(object):
     
         #make lines
         segmentlist = []
+        colors = []
         for theta in thetas:
+            color = self.cmap(self.norm(theta))
             #get xyz coordinates of distance line
             npts   = npts90 * np.sin(theta) + 1
             phis   = np.linspace(0.,2*np.pi,npts)
@@ -85,8 +90,9 @@ class PickEvent(object):
                 x = np.transpose(np.vstack(self.bmap(seg[0],seg[1])))
     
                 segmentlist.append(x)
+                colors.append(color)
     
-            segments = LineCollection(segmentlist)
+            segments = LineCollection(segmentlist,colors=colors)
         return segments
 
 #---- spherical coordinates ----
